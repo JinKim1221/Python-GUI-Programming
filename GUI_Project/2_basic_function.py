@@ -1,4 +1,5 @@
 import tkinter.ttk as ttk
+import tkinter.messagebox as msg_box
 from tkinter import *
 from tkinter import filedialog
 
@@ -7,6 +8,7 @@ root.title("GUI Project")
 
 # Add file
 def add_file():
+
     files = filedialog.askopenfilenames(title="Select images", \
         filetypes = (("PNG", "*.png"),("All files", "*.*")), \
         initialdir=r"C:\Users\Jin\Desktop\Personal Project\Python_game\pygame_project\images")
@@ -21,6 +23,32 @@ def delete_file():
     # print(list_file.curselection())
     for index in reversed(list_file.curselection()):
         list_file.delete(index)
+
+# Path to save
+def browse_dest_path():
+    folder_selected = filedialog.askdirectory()# select a folder
+    if folder_selected == "" :
+        return
+    # print(folder_selected)
+    text_dest_path.delete(0, END)
+    text_dest_path.insert(0, folder_selected)
+
+# Run
+def run():
+    # check each option(width, space, format)
+    print("width : ", combo_width.get())
+    print("space : ", combo_space.get())
+    print("format : ", combo_fformat.get())
+
+    # check file list
+    if list_file.size() == 0:
+        msg_box.showwarning("Warning", "Please add images")
+        return
+    
+    # check path to save
+    if text_dest_path.get() == "" :
+        msg_box.showwarning("Warning", "Pleas select a folder")
+        return
 
 # File Frame (add files, delete the chosen)
 file_frame = Frame(root)
@@ -50,7 +78,7 @@ path_frame.pack(fill="x", padx=5, pady=5, ipady=5)
 text_dest_path = Entry(path_frame)
 text_dest_path.pack(side="left", fill="x", expand=True, padx=5, pady=5, ipady=4) # ipad : inner pad 
 
-button_dest_path = Button(path_frame, text="Find", width=10)
+button_dest_path = Button(path_frame, text="Browse", width=10, command=browse_dest_path)
 button_dest_path.pack(side="right", padx=5, pady=5)
 
 # Option Frame
@@ -105,7 +133,7 @@ run_frame.pack(fill="x", padx=5, pady=5)
 button_close = Button(run_frame, padx=5, pady=5, text="Close", width=12, command=root.quit)
 button_close.pack(side="right", padx=5, pady=5)
 
-button_run = Button(run_frame, padx=5, pady=5, text="Run", width=12)
+button_run = Button(run_frame, padx=5, pady=5, text="Run", width=12, command=run)
 button_run.pack(side="right", padx=5, pady=5)
 
 
