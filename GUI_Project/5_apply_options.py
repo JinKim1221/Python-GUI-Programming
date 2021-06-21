@@ -38,86 +38,91 @@ def browse_dest_path():
 
 # Merge_image
 def merge_image():
-    # Check each value of options
-    # print("width : " ,combo_width.get())
-    # print("format : " ,combo_fformat.get())
+    try : 
+        # Width
+        image_width = combo_width.get()
+        if image_width == "remain":
+            image_width = -1 # width is the same
+        else : 
+            image_width = int(image_width)
 
-    # Width
-    image_width = combo_width.get()
-    if image_width == "remain":
-        image_width = -1 # width is the same
-    else : 
-        image_width = int(image_width)
+        # Space
+        image_space = combo_space.get()
+        if image_space == "narrow" :
+            image_space = 30
+        elif image_space == "normal" :
+            image_space = 60
+        elif image_space == "wide" :
+            image_space = 90
+        else : # "none"
+            image_space = 0
 
-    # Space
-    image_space = combo_space.get()
-    if image_space == "narrow" :
-        image_space = 30
-    elif image_space == "normal" :
-        image_space = 60
-    elif image_space == "wide" :
-        image_space = 90
-    else : # "none"
-        image_space = 0
+        # Format
+        image_format = combo_fformat.get().lower()
 
-    # Format
-    image_format = combo_fformat.get().lower()
+        ########################## Width ##########################
 
-    #######################################################
+        images = [Image.open(x) for x in list_file.get(0, END)]
 
-    images = [Image.open(x) for x in list_file.get(0, END)]
+        # put image size in a list
+        image_sizes = [] #[(width1, height1), (width2, height2), ...]
+        if image_width > -1:
+            # change of width value 
+            image_sizes = [(int(image_width), int(image_width * x.size[1] / x.size[0])) for x in images]
+        else : 
+            # Remain the original size
+            image_sizes = [(x.size[0], x.size[1]) for x in images]
 
-    # put image size in a list
-    image_sizes = [] #[(width1, height1), (width2, height2), ...]
-    if image_width > -1:
-        # change of width value 
-        image_sizes = [(int(image_width), int(image_width * x.size[1] / x.size[0])) for x in images]
-    else : 
-        # Remain the size of the image
-        image_sizes = [(x.size[0], x.size[1]) for x in images]
+        # To calculate each width option and height
+        # ex) an image with 100 * 60 -> 80 * ?  what is height?
+        # original width : original height = changed width : changed height
+        #       100      :        60       =       80      :       ?
+        #        x       :         y       =       x'      :       y'
+        #        xy' = x'y
+        #        y' = x'y / x
+        #       100:60 = 80:48
 
-    # To calculate each width option and height
-    # ex) an image with 100 * 60 -> 80 * ?  what is height?
-    # original width : original height = changed width : changed height
-    #       100      :        60       =       80      :       ?
-    #        x       :         y       =       x'      :       y'
-    #        xy' = x'y
-    #        y' = x'y / x
-    #       100:60 = 80:48
-
-    # To code the calculation
-    # x = width = size[0]
-    # y = height = size[1]
-    # x' = image_width
-    # y' = image_width * size[1] / size[0]
-    widths, heights = zip(*(image_sizes))
-    #size => size[0] : width, size[1] : height
-    # widths = [x.size[0] for x in images]
-    # heights = [x.size[1] for x in images]
- 
-
-    # Maximum width, Total height
-    max_width, total_height = max(widths), sum(heights)
+        # To code the calculation
+        # x = width = size[0]
+        # y = height = size[1]
+        # x' = image_width
+        # y' = image_width * size[1] / size[0]
+        
+        widths, heights = zip(*(image_sizes))
+        #size => size[0] : width, size[1] : height
+        # widths = [x.size[0] for x in images]
+        # heights = [x.size[1] for x in images]
     
-    # Create a sketchbook to put images all together
-    result_iamge = Image.new("RGB", (max_width, total_height), (255, 255,255)) # white background
-    y_offset = 0 # y info
+        # Maximum width, Total height
+        max_width, total_height = max(widths), sum(heights)
+        
+        ########################## Space ##########################
+        if image_space > 0: # apply space between images
+            total_height += (image_space * (len(images)-1))
 
-    # for img in images:
-    #     result_iamge.paste(img, (0, y_offset))
-    #     y_offset += img.size[1] # add the value of height to continuously put images 
+        # Create a sketchbook to put images all together
+        result_iamge = Image.new("RGB", (max_width, total_height), (255, 255,255)) # white background
+        y_offset = 0 # y position
 
-    for idx, img in enumerate(images):
-        result_iamge.paste(img, (0, y_offset))
-        y_offset += img.size[1]
+        for idx, img in enumerate(images):
+            # when width isn't original width image should be resized
+            if image_width > -1 : 
+                img = img.resize(image_sizes[idx])
 
-        progress = (idx + 1)/len(images) * 100 # calcuate the percentage info
-        p_var.set(progress)
-        progress_bar.update()
+            result_iamge.paste(img, (0, y_offset))
+            y_offset += img.size[1] + image_space # value of height + space tha a user set
 
-    dest_path = os.path.join(text_dest_path.get(), "test.jpg")
-    result_iamge.save(dest_path)
-    msg_box.showinfo("Alarm", "Merging finished")
+            progress = (idx + 1)/len(images) * 100 # calcuate the percentage info
+            p_var.set(progress)
+            progress_bar.update()
+
+        ########################## Foramt ##########################
+        file_name = "test." + image_format
+        dest_path = os.path.join(text_dest_path.get(), file_name)
+        result_iamge.save(dest_path)
+        msg_box.showinfo("Alarm", "Merging finished")
+    except Exception as err : #Exception
+        msg_box.showerror("Error", err )
 
 # Run
 def run():
