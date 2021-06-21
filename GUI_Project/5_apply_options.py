@@ -5,6 +5,9 @@ import tkinter.messagebox as msg_box
 from tkinter import *
 from tkinter import filedialog
 from PIL import Image
+import time
+import keyboard
+from PIL import ImageGrab
 
 root = Tk()
 root.title("GUI Project")
@@ -87,7 +90,7 @@ def merge_image():
         # y = height = size[1]
         # x' = image_width
         # y' = image_width * size[1] / size[0]
-        
+
         widths, heights = zip(*(image_sizes))
         #size => size[0] : width, size[1] : height
         # widths = [x.size[0] for x in images]
@@ -117,7 +120,8 @@ def merge_image():
             progress_bar.update()
 
         ########################## Foramt ##########################
-        file_name = "test." + image_format
+        
+        file_name = "Image." + image_format
         dest_path = os.path.join(text_dest_path.get(), file_name)
         result_iamge.save(dest_path)
         msg_box.showinfo("Alarm", "Merging finished")
@@ -130,7 +134,7 @@ def run():
     # print("width : ", combo_width.get())
     # print("space : ", combo_space.get())
     # print("format : ", combo_fformat.get())
-
+    
     # check file list
     if list_file.size() == 0:
         msg_box.showwarning("Warning", "Please add images")
@@ -142,6 +146,20 @@ def run():
         return
 
     merge_image()
+
+
+def screenshot_():
+    print("screen shot")
+    current_time = time.strftime("_%d%m%Y_%H%M%S")
+    img = ImageGrab.grab()
+    img.save("image{}.png".format(current_time))
+
+
+def screenshot():
+    msg_box.showinfo("Information", "Press S to screenshot, e to eixt")
+    keyboard.add_hotkey("s", screenshot_)
+    keyboard.wait("e")
+    msg_box.showinfo("Information", "Finished screenshot")
 
 # File Frame (add files, delete the chosen)
 file_frame = Frame(root)
@@ -229,6 +247,11 @@ button_close.pack(side="right", padx=5, pady=5)
 button_run = Button(run_frame, padx=5, pady=5, text="Run", width=12, command=run)
 button_run.pack(side="right", padx=5, pady=5)
 
+btn_screenshot_file = Button(run_frame, padx=5, pady=5, width=12, text="Screen shot(s)", command = screenshot)
+btn_screenshot_file.pack(side="left", padx=5, pady=5)
+    
+# keyboard.add_hotkey("s", screenshot)
+# keyboard.wait("esc")
 
 
 root.resizable(False, False)
