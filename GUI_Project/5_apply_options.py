@@ -1,3 +1,4 @@
+
 import os
 import tkinter.ttk as ttk
 import tkinter.messagebox as msg_box
@@ -37,14 +38,63 @@ def browse_dest_path():
 
 # Merge_image
 def merge_image():
-    # print(list_file.get(0,END)) # get the list of all files
+    # Check each value of options
+    # print("width : " ,combo_width.get())
+    # print("format : " ,combo_fformat.get())
+
+    # Width
+    image_width = combo_width.get()
+    if image_width == "remain":
+        image_width = -1 # width is the same
+    else : 
+        image_width = int(image_width)
+
+    # Space
+    image_space = combo_space.get()
+    if image_space == "narrow" :
+        image_space = 30
+    elif image_space == "normal" :
+        image_space = 60
+    elif image_space == "wide" :
+        image_space = 90
+    else : # "none"
+        image_space = 0
+
+    # Format
+    image_format = combo_fformat.get().lower()
+
+    #######################################################
+
     images = [Image.open(x) for x in list_file.get(0, END)]
 
+    # put image size in a list
+    image_sizes = [] #[(width1, height1), (width2, height2), ...]
+    if image_width > -1:
+        # change of width value 
+        image_sizes = [(int(image_width), int(image_width * x.size[1] / x.size[0])) for x in images]
+    else : 
+        # Remain the size of the image
+        image_sizes = [(x.size[0], x.size[1]) for x in images]
+
+    # To calculate each width option and height
+    # ex) an image with 100 * 60 -> 80 * ?  what is height?
+    # original width : original height = changed width : changed height
+    #       100      :        60       =       80      :       ?
+    #        x       :         y       =       x'      :       y'
+    #        xy' = x'y
+    #        y' = x'y / x
+    #       100:60 = 80:48
+
+    # To code the calculation
+    # x = width = size[0]
+    # y = height = size[1]
+    # x' = image_width
+    # y' = image_width * size[1] / size[0]
+    widths, heights = zip(*(image_sizes))
     #size => size[0] : width, size[1] : height
     # widths = [x.size[0] for x in images]
     # heights = [x.size[1] for x in images]
-    widths, heights = zip(*(x.size for x in images))
-
+ 
 
     # Maximum width, Total height
     max_width, total_height = max(widths), sum(heights)
@@ -53,7 +103,7 @@ def merge_image():
     result_iamge = Image.new("RGB", (max_width, total_height), (255, 255,255)) # white background
     y_offset = 0 # y info
 
-    # for img in images: # without progress bar
+    # for img in images:
     #     result_iamge.paste(img, (0, y_offset))
     #     y_offset += img.size[1] # add the value of height to continuously put images 
 
@@ -71,6 +121,11 @@ def merge_image():
 
 # Run
 def run():
+    # check each option(width, space, format)
+    # print("width : ", combo_width.get())
+    # print("space : ", combo_space.get())
+    # print("format : ", combo_fformat.get())
+
     # check file list
     if list_file.size() == 0:
         msg_box.showwarning("Warning", "Please add images")
